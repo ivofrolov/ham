@@ -1,0 +1,23 @@
+[project]
+name = "ham"
+version = "0.1"
+requires-python = ">=3.13"
+dependencies = [
+  "paho-mqtt~=2.1",
+]
+
+[project.scripts]
+ham = "ham.cli:main"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["ham"]
+
+[tool.ruff]
+fix = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
