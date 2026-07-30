@@ -17,9 +17,8 @@ RUN pipx install --global --system-site-packages git+https://github.com/ivofrolo
 
 RUN mkdir -p /opt/ham /opt/ham/scripts /opt/ham/data
 WORKDIR /opt/ham
-VOLUME /opt/ham/scripts
-VOLUME /opt/ham/data
+VOLUME ["/opt/ham/scripts", "/opt/ham/data"]
 
 EXPOSE 80
 
-ENTRYPOINT ham -vv --scripts /opt/ham/scripts --http-host 0.0.0.0 --http-port 80
+ENTRYPOINT ["ham", "-vv", "--scripts", "/opt/ham/scripts", "--http-host", "0.0.0.0", "--http-port", "80"]
