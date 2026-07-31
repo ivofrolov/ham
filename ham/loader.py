@@ -54,6 +54,8 @@ class Loader:
     def _poll(self) -> None:
         seen: set[Path] = set()
         for file in sorted(self._path.glob("*.py")):
+            if file.name in ("__init__.py", "__main__.py"):
+                continue
             seen.add(file)
             try:
                 mtime = int(file.stat().st_mtime)
