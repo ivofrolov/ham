@@ -98,12 +98,7 @@ def main() -> int:
 
     loader = Loader(
         args.scripts,
-        partial(
-            Context,
-            cron.Api(cron_scheduler),
-            http.Api(http_router),
-            mqtt.Api(mqtt_client),
-        ),
+        partial(Context, cron_scheduler, http_router, mqtt_client),
     )
     loader_thread = threading.Thread(target=loader.run, name="LoaderThread")
     loader_thread.start()

@@ -97,7 +97,7 @@ class TestApi(unittest.TestCase):
             ]
         )
 
-    def test_at_expr(self):
+    def test_at__expr(self):
         cron_mock = mock.create_autospec(Cron, instance=True)
         api = Api(cron_mock)
 
