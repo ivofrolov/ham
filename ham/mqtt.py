@@ -38,7 +38,10 @@ class Client:
         self._lock = threading.Lock()
 
         self._client = paho.Client(
-            paho.CallbackAPIVersion.VERSION2,
+            callback_api_version=paho.CallbackAPIVersion.VERSION2,
+            protocol=paho.MQTTv311,
+            client_id="com.github.ivofrolov.ham",
+            clean_session=False,  # see Client.connect(clean_start=...) for MQTT v5.0
             reconnect_on_failure=True,
         )
         self._client.on_connect = self._on_connect
@@ -47,7 +50,7 @@ class Client:
         self._client.enable_logger(logger)
 
     def run(self) -> None:
-        self._client.connect_async(self._host, self._port)
+        self._client.connect_async(self._host, self._port, clean_start=False)
         self._client.loop_forever(retry_first_connection=True)
 
     def cancel(self) -> None:

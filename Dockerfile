@@ -1,5 +1,7 @@
 FROM debian:stable-slim
 
+ARG HAM_TAG
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     python3 \
@@ -8,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-rrdtool \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pipx install --global --system-site-packages git+https://github.com/ivofrolov/ham.git@v0.2
+RUN pipx install --global --system-site-packages git+https://github.com/ivofrolov/ham.git@$HAM_TAG
 # in local development mode use this instead
 # WORKDIR /tmp
 # RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
