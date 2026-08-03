@@ -1,6 +1,6 @@
 [project]
 name = "ham"
-version = "0.2"
+dynamic = ["version"]
 requires-python = ">=3.13"
 dependencies = [
   "paho-mqtt~=2.1",
@@ -15,6 +15,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["ham"]
+
+[tool.setuptools.dynamic]
+version = {attr = "ham.__version__"}
 
 [tool.ruff]
 fix = true

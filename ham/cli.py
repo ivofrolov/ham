@@ -5,11 +5,11 @@ from functools import partial
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 
-from ham import cron, http, mqtt
+from ham import __version__, cron, http, mqtt
 from ham.context import Context
 from ham.loader import Loader
 
-parser = argparse.ArgumentParser(description="Home Automation Machine")
+parser = argparse.ArgumentParser(description=f"Home Automation Machine {__version__}")
 parser.add_argument(
     "-s",
     "--scripts",
@@ -62,6 +62,7 @@ def main() -> int:
     )
 
     logger = logging.getLogger(__name__)
+    logger.info("Starting Home Automation Machine version %s", __version__)
 
     stop = threading.Event()
 
