@@ -1,8 +1,6 @@
-import contextlib
 import logging
 import threading
 from dataclasses import dataclass, field
-from functools import partial
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from typing import Any
@@ -40,7 +38,7 @@ class Router:
     def add(self, method: str, path: str, handler: proto.HttpHandler) -> None:
         with self._lock:
             self._routes[(method, path)] = handler
-        logger.info("http route method=%s path=%r", method, path)
+        logger.debug("http route method=%s path=%r", method, path)
 
     def remove(self, method: str, path: str, handler: proto.HttpHandler) -> None:
         unroute = False
@@ -49,7 +47,7 @@ class Router:
                 del self._routes[(method, path)]
                 unroute = True
         if unroute:
-            logger.info("http unroute method=%s path=%r", method, path)
+            logger.debug("http unroute method=%s path=%r", method, path)
 
     def dispatch(self, request: Request) -> proto.HttpResponse:
         handler = self._routes.get((request.method, request.path))
@@ -112,19 +110,3 @@ class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, format: str, *args: Any) -> None:
         logger.debug(format, *args)
-
-
-class Api:
-    _router: Router
-    _teardown: contextlib.ExitStack
-
-    def __init__(self, router: Router) -> None:
-        self._router = router
-        self._teardown = contextlib.ExitStack()
-
-    def route(self, method: str, path: str, handler: proto.HttpHandler) -> None:
-        self._router.add(method, path, handler)
-        self._teardown.callback(partial(self._router.remove, method, path, handler))
-
-    def teardown(self) -> None:
-        self._teardown.close()

@@ -9,15 +9,13 @@ class Range:
     hi: int
 
 
-Minute = Annotated[int, Range(0, 59)]
-Hour = Annotated[int, Range(0, 23)]
-DayOfMonth = Annotated[int, Range(1, 31)]
-Month = Annotated[int, Range(1, 12)]
-DayOfWeek = Annotated[int, Range(0, 6)]  # Sun=0, Mon=1
-
-Every = None
-
 type Atom[T] = T | Sequence[T] | Every
+Minute = Atom[Annotated[int, Range(0, 59)]]
+Hour = Atom[Annotated[int, Range(0, 23)]]
+DayOfMonth = Atom[Annotated[int, Range(1, 31)]]
+Month = Atom[Annotated[int, Range(1, 12)]]
+DayOfWeek = Atom[Annotated[int, Range(0, 6)]]  # Sun=0, Mon=1
+Every = None
 
 CronCallback = Callable[[], None]
 
@@ -25,11 +23,11 @@ CronCallback = Callable[[], None]
 class CronApi(Protocol):
     def at(
         self,
-        M: Atom[Minute],
-        H: Atom[Hour],
-        d: Atom[DayOfMonth],
-        m: Atom[Month],
-        w: Atom[DayOfWeek],
+        M: Minute,
+        H: Hour,
+        d: DayOfMonth,
+        m: Month,
+        w: DayOfWeek,
         callback: CronCallback,
     ) -> None: ...
 

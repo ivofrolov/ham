@@ -3,7 +3,6 @@ import logging
 import threading
 from concurrent.futures import Executor, ThreadPoolExecutor
 from dataclasses import dataclass
-from functools import partial
 
 import paho.mqtt.client as paho
 
@@ -135,28 +134,3 @@ class Client:
             handler(msg)
         except Exception:
             logger.exception("handler failed for topic %s", msg.topic)
-
-
-class Api:
-    _client: Client
-    _teardown: contextlib.ExitStack
-
-    def __init__(self, client: Client) -> None:
-        self._client = client
-        self._teardown = contextlib.ExitStack()
-
-    def subscribe(self, topic: str, handler: proto.MqttHandler, qos: int = 0) -> None:
-        self._client.subscribe(topic, handler, qos)
-        self._teardown.callback(partial(self._client.unsubscribe, topic, handler))
-
-    def publish(
-        self,
-        topic: str,
-        payload: bytes,
-        qos: int = 0,
-        retain: bool = False,
-    ) -> None:
-        self._client.publish(topic, payload, qos=qos, retain=retain)
-
-    def teardown(self) -> None:
-        self._teardown.close()

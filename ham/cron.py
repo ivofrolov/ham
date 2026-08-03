@@ -4,11 +4,9 @@ import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from functools import partial
 
 from ham.proto import (
     Atom,
-    CronApi,
     CronCallback,
     DayOfMonth,
     DayOfWeek,
@@ -23,11 +21,11 @@ logger = logging.getLogger(__name__)
 
 @dataclass(slots=True)
 class Expr:
-    M: Atom[Minute] = Every
-    H: Atom[Hour] = Every
-    d: Atom[DayOfMonth] = Every
-    m: Atom[Month] = Every
-    w: Atom[DayOfWeek] = Every
+    M: Minute = Every
+    H: Hour = Every
+    d: DayOfMonth = Every
+    m: Month = Every
+    w: DayOfWeek = Every
 
 
 def _match(atom: Atom, unit: int) -> bool:
@@ -101,31 +99,3 @@ class Cron:
             with contextlib.suppress(ValueError):
                 self._schedule.remove((expr, callback))
         logger.debug("cron callback unschedule")
-
-
-class Api(CronApi):
-    _cron: Cron
-    _teardown: contextlib.ExitStack
-
-    def __init__(self, cron: Cron) -> None:
-        self._cron = cron
-        self._teardown = contextlib.ExitStack()
-
-    def at(
-        self,
-        M: Atom[Minute],
-        H: Atom[Hour],
-        d: Atom[DayOfMonth],
-        m: Atom[Month],
-        w: Atom[DayOfWeek],
-        callback: CronCallback,
-    ) -> None:
-        expr = Expr(M, H, d, m, w)
-        self._cron.add(expr, callback)
-        self._teardown.callback(partial(self._cron.remove, expr, callback))
-
-    def once(self, callback: CronCallback) -> None:
-        raise NotImplementedError
-
-    def teardown(self) -> None:
-        self._teardown.close()

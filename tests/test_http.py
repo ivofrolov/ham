@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-from ham.http import Api, Request, Router
+from ham.http import Request, Router
 from ham.proto import HttpHandler
 
 
@@ -66,38 +66,3 @@ class TestRouter(unittest.TestCase):
 
         handler1.assert_not_called()
         handler2.assert_called()
-
-
-class TestApi(unittest.TestCase):
-    def test_route(self):
-        handler1 = mock.Mock(spec=HttpHandler)
-        handler2 = mock.Mock(spec=HttpHandler)
-        router_mock = mock.create_autospec(Router, instance=True)
-        api = Api(router_mock)
-
-        api.route("GET", "/test", handler1)
-        api.route("POST", "/test", handler2)
-
-        router_mock.add.assert_has_calls(
-            [
-                mock.call("GET", "/test", handler1),
-                mock.call("POST", "/test", handler2),
-            ]
-        )
-
-    def test_teardown(self):
-        handler1 = mock.Mock(spec=HttpHandler)
-        handler2 = mock.Mock(spec=HttpHandler)
-        router_mock = mock.create_autospec(Router, instance=True)
-        api = Api(router_mock)
-        api.route("GET", "/test", handler1)
-        api.route("POST", "/test", handler2)
-
-        api.teardown()
-
-        router_mock.remove.assert_has_calls(
-            [
-                mock.call("POST", "/test", handler2),
-                mock.call("GET", "/test", handler1),
-            ]
-        )
