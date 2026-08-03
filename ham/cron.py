@@ -92,10 +92,18 @@ class Cron:
     def add(self, expr: Expr, callback: CronCallback) -> None:
         with self._lock:
             self._schedule.append((expr, callback))
-        logger.debug("callback schedule")
+        logger.debug(
+            "cron schedule callback=%s.%s",
+            callback.__module__,
+            getattr(callback, "__name__", "?"),
+        )
 
     def remove(self, expr: Expr, callback: CronCallback) -> None:
         with self._lock:
             with contextlib.suppress(ValueError):
                 self._schedule.remove((expr, callback))
-        logger.debug("cron callback unschedule")
+        logger.debug(
+            "cron unschedule calback=%s.%s",
+            callback.__module__,
+            getattr(callback, "__name__", "?"),
+        )

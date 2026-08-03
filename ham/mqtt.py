@@ -58,7 +58,13 @@ class Client:
         with self._lock:
             self._handlers.setdefault(topic, []).append(handler)
             self._client.subscribe(topic, qos=qos)
-        logger.debug("mqtt subscribe topic=%r qos=%d", topic, qos)
+        logger.debug(
+            "mqtt subscribe topic=%r qos=%d handler=%s.%s",
+            topic,
+            qos,
+            handler.__module__,
+            getattr(handler, "__name__", "?"),
+        )
 
     def unsubscribe(self, topic: str, handler: proto.MqttHandler) -> None:
         with self._lock:
@@ -68,7 +74,12 @@ class Client:
             if not handlers:
                 self._handlers.pop(topic, None)
                 self._client.unsubscribe(topic)
-        logger.debug("mqtt unsubscribe topic=%r", topic)
+        logger.debug(
+            "mqtt unsubscribe topic=%r handler=%s.%s",
+            topic,
+            handler.__module__,
+            getattr(handler, "__name__", "?"),
+        )
 
     def publish(
         self,

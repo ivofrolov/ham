@@ -38,7 +38,13 @@ class Router:
     def add(self, method: str, path: str, handler: proto.HttpHandler) -> None:
         with self._lock:
             self._routes[(method, path)] = handler
-        logger.debug("http route method=%s path=%r", method, path)
+        logger.debug(
+            "http route method=%s path=%r handler=%s.%s",
+            method,
+            path,
+            handler.__module__,
+            getattr(handler, "__name__", "?"),
+        )
 
     def remove(self, method: str, path: str, handler: proto.HttpHandler) -> None:
         unroute = False
@@ -47,7 +53,13 @@ class Router:
                 del self._routes[(method, path)]
                 unroute = True
         if unroute:
-            logger.debug("http unroute method=%s path=%r", method, path)
+            logger.debug(
+                "http unroute method=%s path=%r handler=%s.%s",
+                method,
+                path,
+                handler.__module__,
+                getattr(handler, "__name__", "?"),
+            )
 
     def dispatch(self, request: Request) -> proto.HttpResponse:
         handler = self._routes.get((request.method, request.path))
