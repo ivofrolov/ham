@@ -25,9 +25,6 @@ class CronApi(proto.CronApi):
         self._cron.add(expr, callback)
         self._teardown.callback(partial(self._cron.remove, expr, callback))
 
-    def once(self, callback: proto.CronCallback) -> None:
-        raise NotImplementedError
-
     def teardown(self) -> None:
         self._teardown.close()
 

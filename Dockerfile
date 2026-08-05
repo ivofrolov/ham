@@ -1,6 +1,4 @@
-FROM debian:stable-slim
-
-ARG HAM_TAG
+FROM debian:stable-slim AS build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -10,13 +8,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-rrdtool \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pipx install --global --system-site-packages git+https://github.com/ivofrolov/ham.git@$HAM_TAG
-# in local development mode use this instead
-# WORKDIR /tmp
-# RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-#     --mount=type=bind,source=ham/,target=ham/ \
-#     pipx install --global --system-site-packages .
-
 RUN mkdir -p /opt/ham /opt/ham/scripts /opt/ham/data
 WORKDIR /opt/ham
 VOLUME ["/opt/ham/scripts", "/opt/ham/data"]
@@ -24,3 +15,22 @@ VOLUME ["/opt/ham/scripts", "/opt/ham/data"]
 EXPOSE 80
 
 ENTRYPOINT ["ham", "-vv", "--scripts", "/opt/ham/scripts", "--http-host", "0.0.0.0", "--http-port", "80"]
+
+
+FROM build AS dev
+
+RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=ham/,target=ham/ \
+    pipx install --global \
+    --preinstall paramiko~=5.0 \
+    --system-site-packages \
+    .
+
+
+FROM build
+
+ARG HAM_TAG
+RUN pipx install --global \
+    --system-site-packages \
+    --preinstall paramiko~=5.0 \
+    git+https://github.com/ivofrolov/ham.git@$HAM_TAG

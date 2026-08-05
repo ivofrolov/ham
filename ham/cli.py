@@ -62,7 +62,7 @@ def main() -> int:
     )
 
     logger = logging.getLogger(__name__)
-    logger.info("Starting Home Automation Machine version %s", __version__)
+    logger.info("starting Home Automation Machine version %s", __version__)
 
     stop = threading.Event()
 

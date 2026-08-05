@@ -31,8 +31,6 @@ class CronApi(Protocol):
         callback: CronCallback,
     ) -> None: ...
 
-    def once(self, callback: CronCallback) -> None: ...
-
 
 class HttpRequest(Protocol):
     method: str
