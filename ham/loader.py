@@ -1,5 +1,7 @@
 import importlib.util
+import json
 import logging
+import subprocess
 import sys
 import threading
 from collections.abc import Callable
@@ -40,20 +42,48 @@ class Loader:
         self._path = path
         self._context = context
         self._poll_interval = poll_interval
+        self._requirements_mtime = None
         self._scripts = {}
         self._failed = {}
         self._timer = threading.Event()
 
     def run(self) -> None:
         while not self._timer.wait(self._poll_interval):
-            self._poll()
+            self._poll_requirements()
+            self._poll_scripts()
 
     def cancel(self) -> None:
         self._timer.set()
         for file in list(self._scripts):
-            self._unload(file)
+            self._unload_script(file)
 
-    def _poll(self) -> None:
+    def _poll_requirements(self) -> None:
+        file = self._path / "requirements.txt"
+        if not file.exists():
+            return
+        mtime = file.stat().st_mtime
+        if self._requirements_mtime and self._requirements_mtime >= mtime:
+            return
+        try:
+            command = (
+                sys.executable, "-m", "pip", "install",
+                "-qqq", "--report", "-",
+                "-r", str(file),
+            )  # fmt: skip
+            output = subprocess.check_output(command)
+        except Exception as exc:
+            logger.exception("failed to install packages from %s", file)
+        self._requirements_mtime = mtime
+        report = json.loads(output)
+        packages = [
+            f"{p['metadata']['name']}=={p['metadata']['version']}"
+            for p in report["install"]
+        ]
+        if not packages:
+            return
+        logger.info("packages installed from %s: %s", file, " ".join(packages))
+
+    def _poll_scripts(self) -> None:
         seen: set[Path] = set()
         for file in sorted(self._path.glob("*.py")):
             if file.name in ("__init__.py", "__main__.py"):
@@ -67,7 +97,7 @@ class Loader:
                 script = self._scripts.get(file)
                 if script is not None and mtime <= script.mtime:
                     continue
-                self._load(file, mtime)
+                self._load_script(file, mtime)
                 if file in self._failed:
                     del self._failed[file]
                 logger.info("(re)loaded script %s", file)
@@ -82,10 +112,10 @@ class Loader:
 
         # unload deleted scripts
         for file in self._scripts.keys() - seen:
-            self._unload(file)
+            self._unload_script(file)
             logger.info("unloaded script %s", file)
 
-    def _load(self, file: Path, mtime: int) -> None:
+    def _load_script(self, file: Path, mtime: int) -> None:
         assert __spec__ is not None
         # each reload needs unique module name in order to avoid caching
         name = f"{__spec__.parent}.scripts.{file.stem}.{mtime}"
@@ -115,11 +145,11 @@ class Loader:
 
         # unload the previous script version only after the next one has been loaded
         if file in self._scripts:
-            self._unload(file)
+            self._unload_script(file)
 
         self._scripts[file] = Script(path=file, mtime=mtime, module=module, ctx=ctx)
 
-    def _unload(self, file: Path) -> None:
+    def _unload_script(self, file: Path) -> None:
         script = self._scripts.pop(file)
         script.ctx.teardown()
         if teardown := getattr(sys.modules[script.module.__name__], "teardown", None):

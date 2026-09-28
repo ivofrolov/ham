@@ -1,5 +1,6 @@
 FROM debian:stable-slim AS build
 
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     python3 \
@@ -22,7 +23,6 @@ FROM build AS dev
 RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=ham/,target=ham/ \
     pipx install --global \
-    --preinstall paramiko~=5.0 \
     --system-site-packages \
     .
 
@@ -32,5 +32,4 @@ FROM build
 ARG HAM_TAG
 RUN pipx install --global \
     --system-site-packages \
-    --preinstall paramiko~=5.0 \
     git+https://github.com/ivofrolov/ham.git@$HAM_TAG
