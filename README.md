@@ -55,6 +55,8 @@ Put your scripts in a folder and pass it in `--scripts` parameter to `ham`. Impl
   * subscribe and publish to MQTT topics,
   * register HTTP handlers.
 
+Optionally implement `teardown()` method which is called on module unload.
+
 Here is a script example.
 
 ``` python
@@ -94,4 +96,8 @@ def setup(ctx: "Context") -> None:
     ctx.cron.at(None, None, None, None, None, cron_task)
     ctx.http.route("GET", "/foobar", on_http_request)
     ctx.mqtt.subscribe("foo/bar", on_mqtt_message)
+
+
+def teardown() -> None:
+    logger.debug("script torn down")
 ```

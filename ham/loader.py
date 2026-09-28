@@ -50,6 +50,8 @@ class Loader:
 
     def cancel(self) -> None:
         self._timer.set()
+        for file in list(self._scripts):
+            self._unload(file)
 
     def _poll(self) -> None:
         seen: set[Path] = set()
@@ -120,4 +122,9 @@ class Loader:
     def _unload(self, file: Path) -> None:
         script = self._scripts.pop(file)
         script.ctx.teardown()
+        if teardown := getattr(sys.modules[script.module.__name__], "teardown", None):
+            try:
+                teardown()
+            except Exception as exc:
+                logger.warning("script teardown function failed: %s", exc)
         del sys.modules[script.module.__name__]

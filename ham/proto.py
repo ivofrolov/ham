@@ -81,3 +81,4 @@ class Context(Protocol):
 
 
 Setup = Callable[[Context], None]
+Teardown = Callable[[], None]
